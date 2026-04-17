@@ -20,7 +20,7 @@ export default function Landing() {
   ];
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ minHeight: '100dvh', backgroundColor: '#f8fafc', display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
       <header style={{ padding: '20px 40px', backgroundColor: 'white', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'center' }}>
         <h1 
           className="hover-opacity"
@@ -31,8 +31,8 @@ export default function Landing() {
         </h1>
       </header>
 
-      <main style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '40px' }}>
-        <div style={{ display: 'flex', gap: '40px', maxWidth: '1000px', width: '100%' }}>
+      <main className="landing-container" style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '20px' }}>
+        <div className="landing-main" style={{ marginTop: '20px' }}>
           
           {/* Find Next Matches Panel */}
           <div className="glass-panel" style={{ flex: 1, padding: '40px' }}>
@@ -61,7 +61,7 @@ export default function Landing() {
             </div>
           </div>
 
-          <div style={{ width: '2px', backgroundColor: '#e2e8f0', alignSelf: 'stretch' }}></div>
+          <div className="landing-divider" style={{ width: '2px', backgroundColor: '#e2e8f0', alignSelf: 'stretch' }}></div>
 
           {/* Attendee Portal Panel */}
           <div className="glass-panel" style={{ flex: 1, padding: '40px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>

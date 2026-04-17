@@ -212,49 +212,45 @@ export default function SeatMap() {
           </button>
         </div>
         
-        <div style={{ width: '100%', height: '30px', backgroundColor: '#cbd5e1', borderRadius: '4px', display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#64748b', fontSize: '0.8rem', fontWeight: 'bold', marginBottom: '15px' }}>
-          PITCH DIRECTION
+        <div style={{ width: '100%', height: '30px', backgroundColor: '#cbd5e1', borderRadius: '4px', display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#64748b', fontSize: '0.7rem', fontWeight: 'bold', marginBottom: '15px', letterSpacing: '1px' }}>
+          FIELD / PITCH DIRECTION
         </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center' }}>
-          {rows.map(row => (
-            <div key={row} style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-              <span style={{ width: '20px', fontWeight: 'bold', color: '#64748b', textAlign: 'center' }}>{row}</span>
-              {Array.from({ length: cols }).map((_, i) => {
-                const seatNum = i + 1;
-                // Randomly mock some seats as taken
-                const isTaken = (seatNum * row.charCodeAt(0)) % 7 === 0;
-                const isSelected = selectedSpecificSeats.find(s => s.row === row && s.number === seatNum);
-
-                return (
-                  <button
-                    key={`${row}${seatNum}`}
-                    disabled={isTaken}
-                    onClick={() => toggleSeat(row, seatNum)}
-                    style={{
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: '50%',
-                      border: isSelected ? '3px solid #111827' : 'none',
-                      backgroundColor: isTaken ? '#cbd5e1' : (isSelected ? selectedSection.categoryColor : selectedSection.categoryColor),
-                      color: isTaken ? '#94a3b8' : 'white',
-                      cursor: isTaken ? 'not-allowed' : 'pointer',
-                      fontSize: '0.75rem',
-                      fontWeight: 'bold',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      transition: 'transform 0.1s ease',
-                      transform: isSelected ? 'scale(1.1)' : 'scale(1)',
-                      opacity: isTaken ? 0.6 : (isSelected ? 1 : 0.8)
-                    }}
-                  >
-                    {seatNum}
-                  </button>
-                )
-              })}
-            </div>
-          ))}
+ 
+        <div style={{ paddingBottom: '10px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', alignItems: 'center', overflowX: 'auto', overflowY: 'hidden', padding: '10px 0', webkitOverflowScrolling: 'touch' }}>
+            {rows.map(row => (
+              <div key={row} className="seat-row" style={{ minWidth: 'fit-content', padding: '0 10px' }}>
+                <span style={{ width: '20px', fontWeight: 'bold', color: '#64748b', textAlign: 'center', flexShrink: 0, fontSize: '0.8rem' }}>{row}</span>
+                {Array.from({ length: cols }).map((_, i) => {
+                  const seatNum = i + 1;
+                  const isTaken = (seatNum * row.charCodeAt(0)) % 7 === 0;
+                  const isSelected = selectedSpecificSeats.find(s => s.row === row && s.number === seatNum);
+ 
+                  return (
+                    <button
+                      key={`${row}${seatNum}`}
+                      disabled={isTaken}
+                      onClick={() => toggleSeat(row, seatNum)}
+                      className="seat-btn"
+                      style={{
+                        border: isSelected ? '3px solid #111827' : 'none',
+                        backgroundColor: isTaken ? '#cbd5e1' : selectedSection.categoryColor,
+                        color: isTaken ? '#94a3b8' : 'white',
+                        cursor: isTaken ? 'not-allowed' : 'pointer',
+                        transition: 'transform 0.1s ease',
+                        transform: isSelected ? 'scale(1.1)' : 'scale(1)',
+                        opacity: isTaken ? 0.6 : (isSelected ? 1 : 0.8),
+                        flexShrink: 0
+                      }}
+                    >
+                      {seatNum}
+                    </button>
+                  )
+                })}
+              </div>
+            ))}
+          </div>
+          <p className="mobile-only" style={{ textAlign: 'center', fontSize: '0.75rem', color: '#94a3b8', margin: '5px 0 0 0', fontStyle: 'italic' }}>← Swipe to see more seats →</p>
         </div>
         <p style={{textAlign:'center', fontSize: '0.85rem', color: '#64748b', marginTop: '15px'}}>Max 5 seats perfectly adjacent</p>
       </div>
