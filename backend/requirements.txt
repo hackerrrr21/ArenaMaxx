@@ -6,3 +6,5 @@ firebase-admin==6.2.0
 pytest==7.4.2
 google-generativeai
 python-dotenv
+gunicorn
+eventlet

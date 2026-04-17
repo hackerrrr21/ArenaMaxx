@@ -85,6 +85,7 @@ export default function GeminiChat() {
           className="pulse-animation"
           onMouseEnter={(e) => e.target.style.transform = 'scale(1.1)'}
           onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+          aria-label="Open AI Concierge"
         >
           <Sparkles size={28} />
         </button>
@@ -108,7 +109,11 @@ export default function GeminiChat() {
               <Sparkles size={18} />
               <span style={{ fontWeight: 'bold' }}>ArenaMaxx AI Concierge</span>
             </div>
-            <button onClick={() => setIsOpen(false)} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}>
+            <button 
+              onClick={() => setIsOpen(false)} 
+              style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}
+              aria-label="Close Chat"
+            >
               <X size={20} />
             </button>
           </div>
@@ -169,10 +174,11 @@ export default function GeminiChat() {
                 width: '40px', 
                 display: 'flex', 
                 alignItems: 'center', 
-                justifyContent: 'center',
+               justifyContent: 'center',
                 cursor: isLoading ? 'not-allowed' : 'pointer',
                 opacity: isLoading ? 0.6 : 1
               }}
+              aria-label="Send Message"
             >
               <Send size={18} />
             </button>

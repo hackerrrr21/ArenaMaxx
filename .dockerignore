@@ -1,0 +1,13 @@
+.git
+node_modules
+venv
+__pycache__
+*.pyc
+stadium.db
+.env
+frontend/node_modules
+frontend/dist
+README.md
+implementation_plan.md
+task.md
+walkthrough.md

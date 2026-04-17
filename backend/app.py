@@ -1,5 +1,5 @@
 import os
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 from flask_socketio import SocketIO
 from flask_cors import CORS
 from models import db, User, Seat, Ticket, Order, WashroomSlot
@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 load_dotenv()
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='../frontend/dist', static_url_path='/')
 # Configurations
 app.config['SECRET_KEY'] = 'living_stadium_secret_2026'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///stadium.db'
@@ -39,6 +39,17 @@ def initialize_database():
                 db.session.add(Seat(block='B', row='1', number=i))
             db.session.commit()
             print("Database initialized with mock seats.")
+ 
+# Serve React Frontend
+@app.route('/')
+def serve_index():
+    return send_from_directory(app.static_folder, 'index.html')
+ 
+@app.errorhandler(404)
+def not_found(e):
+    # This ensures that deep links in React routing work correctly
+    return send_from_directory(app.static_folder, 'index.html')
+
 
 @app.route('/api/seats', methods=['GET'])
 def get_seats():
@@ -120,4 +131,5 @@ def handle_disconnect():
 if __name__ == '__main__':
     initialize_database()
     simulator.start()
-    socketio.run(app, debug=True, host='0.0.0.0', port=5000, allow_unsafe_werkzeug=True)
+    port = int(os.environ.get("PORT", 5000))
+    socketio.run(app, debug=False, host='0.0.0.0', port=port, allow_unsafe_werkzeug=True)

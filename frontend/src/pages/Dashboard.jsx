@@ -238,6 +238,7 @@ export default function Dashboard() {
       <button 
         onClick={() => setHelpStatus('selecting')}
         className="help-fab"
+        aria-label="Request Emergency Assistance"
       >
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
            <LifeBuoy size={34} />
