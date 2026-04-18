@@ -10,10 +10,11 @@ google-cloud-logging
 google-cloud-storage
 google-cloud-secret-manager
 google-auth
-google-generativeai
-flask-talisman
-bleach
-pytest==7.4.2
+google-cloud-aiplatform
+google-cloud-pubsub
+google-cloud-trace
+google-cloud-error-reporting
+pydantic==2.5.2
 python-dotenv
 gunicorn
 eventlet

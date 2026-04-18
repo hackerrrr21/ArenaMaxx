@@ -28,6 +28,8 @@ from api.concessions import concessions_bp
 from api.washrooms import washrooms_bp
 from api.gemini import gemini_bp
 from api.events import events_bp
+from services.monitoring import setup_monitoring
+from services.emergency import emergency_manager
 
 load_dotenv()
 __version__ = "3.1.0"
@@ -109,6 +111,8 @@ cache = Cache(app)
 limiter = Limiter(get_remote_address, app=app, default_limits=["300 per day"], storage_uri="memory://")
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
 _firebase_ready = initialize_firebase()
+setup_monitoring(app)
+emergency_manager.socketio = socketio
 
 # ─── Register Blueprints ──────────────────────────────────────────────────────
 app.register_blueprint(seats_bp)
@@ -157,5 +161,8 @@ if __name__ == '__main__':
     
     simulator = CrowdSimulator(socketio)
     simulator.start()
+    
+    # Initialize Emergency Logic
+    emergency_manager.socketio = socketio
     port = int(os.environ.get("PORT", DEFAULT_PORT))
     socketio.run(app, debug=False, host='0.0.0.0', port=port, allow_unsafe_werkzeug=True)

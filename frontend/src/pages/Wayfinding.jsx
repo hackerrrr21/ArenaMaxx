@@ -179,8 +179,28 @@ export default function Wayfinding() {
                 </div>
                 </div>
 
+                {/* Emergency Evacuation Overlay */}
+                {emergencyMode && (
+                  <div style={{ 
+                    position: 'absolute', 
+                    top: '20px', 
+                    left: '0', 
+                    right: '0', 
+                    backgroundColor: 'rgba(220, 38, 38, 0.95)', 
+                    color: 'white', 
+                    padding: '20px', 
+                    textAlign: 'center',
+                    zIndex: 100,
+                    animation: 'pulseRed 1.5s infinite',
+                    boxShadow: '0 10px 30px rgba(0,0,0,0.5)'
+                  }}>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>⚠️ EMERGENCY EVACUATION</div>
+                    <div style={{ fontSize: '1rem', marginTop: '5px' }}>Follow the RED arrow to the nearest Safe Exit immediately.</div>
+                  </div>
+                )}
+
                 {/* Congestion Alert Overlay */}
-                {congestionAlert && (
+                {congestionAlert && !emergencyMode && (
                   <div style={{ 
                     position: 'absolute', 
                     top: '110px', 
@@ -222,11 +242,15 @@ export default function Wayfinding() {
                     <>
                     <Navigation 
                       size={100} 
-                      color={congestionAlert ? '#f59e0b' : 'var(--stadium-green)'} 
-                      style={{ filter: `drop-shadow(0 10px 20px ${congestionAlert ? 'rgba(245, 158, 11, 0.6)' : 'rgba(34, 197, 94, 0.6)'})`, transition: 'color 0.5s ease' }} 
+                      color={emergencyMode ? '#ef4444' : (congestionAlert ? '#f59e0b' : 'var(--stadium-green)')} 
+                      style={{ 
+                        filter: `drop-shadow(0 10px 20px ${emergencyMode ? 'rgba(239, 68, 68, 0.8)' : (congestionAlert ? 'rgba(245, 158, 11, 0.6)' : 'rgba(34, 197, 94, 0.6)')})`, 
+                        transition: 'color 0.5s ease',
+                        transform: emergencyMode ? 'rotate(180deg)' : 'none' // Direct to exit
+                      }} 
                     />
-                    <div style={{ color: congestionAlert ? '#f59e0b' : 'var(--stadium-green)', fontWeight: 'bold', marginTop: '30px', fontSize: '1.5rem', textShadow: '0 2px 10px rgba(0,0,0,0.8)', textAlign: 'center' }}>
-                        {congestionAlert ? 'Detouring via West Concourse' : (distance < 50 ? 'Turn Left Ahead' : 'Keep Straight')}
+                    <div style={{ color: emergencyMode ? '#ef4444' : (congestionAlert ? '#f59e0b' : 'var(--stadium-green)'), fontWeight: 'bold', marginTop: '30px', fontSize: '1.5rem', textShadow: '0 2px 10px rgba(0,0,0,0.8)', textAlign: 'center' }}>
+                        {emergencyMode ? 'NEAREST EXIT' : (congestionAlert ? 'Detouring via West Concourse' : (distance < 50 ? 'Turn Left Ahead' : 'Keep Straight'))}
                     </div>
                     </>
                 ) : (
