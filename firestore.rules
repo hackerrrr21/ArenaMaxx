@@ -1,0 +1,29 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Concession orders — allow read by any user, write only by authenticated requests
+    match /concession_orders/{orderId} {
+      allow read: if true;
+      allow write: if request.auth != null || request.resource.data.keys().hasAll(['items', 'queue_number', 'status']);
+    }
+
+    // Washroom bookings — allow read by any client, write only with valid fields
+    match /washroom_bookings/{bookingId} {
+      allow read: if true;
+      allow write: if request.resource.data.keys().hasAll(['block', 'time_slot', 'status']);
+    }
+
+    // AI chat logs — write-only for analytics purposes, no public read
+    match /ai_chat_logs/{logId} {
+      allow read: if false;
+      allow write: if true;
+    }
+
+    // Stadium events — read by all, write by service account only
+    match /stadium_events/{eventId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+  }
+}

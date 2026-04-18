@@ -1,0 +1,6 @@
+{
+  "projects": {
+    "default": "arenamaxx",
+    "production": "arenamaxx"
+  }
+}
