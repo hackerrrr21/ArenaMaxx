@@ -39,19 +39,21 @@ export default function Concessions() {
   };
 
   const placeOrder = () => {
-    // Generate simple breakdown string for mock order logic
     const orderString = cart.map(c => `${c.quantity}x ${c.item.name}`).join(', ');
-    
-    fetch('http://localhost:5000/api/concessions/order', {
+    const baseUrl = import.meta.env.PROD ? '' : 'http://localhost:5000';
+    fetch(`${baseUrl}/api/concessions/order`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ items: orderString })
     })
     .then(res => res.json())
     .then(data => {
-      setOrderStatus(data);
-      setCart([]);
-    });
+      if (data.success) {
+        setOrderStatus(data);
+        setCart([]);
+      }
+    })
+    .catch(() => alert('Could not place order. Please try again.'));
   };
 
   const total = cart.reduce((acc, curr) => acc + (curr.item.price * curr.quantity), 0);
@@ -73,9 +75,9 @@ export default function Concessions() {
   }
 
   return (
-    <div className="content-flex" style={{ gap: '30px' }}>
-      <div className="glass-panel" style={{ flex: 2, padding: '30px' }}>
-        <h2>Food & Beverages</h2>
+    <main className="content-flex" style={{ gap: '30px' }} role="main">
+      <section className="glass-panel" style={{ flex: 2, padding: '30px' }} aria-label="Food and Beverage Menu">
+        <h1>Food &amp; Beverages</h1>
         <p style={{ color: 'var(--text-muted)', marginBottom: '20px' }}>Skip the line! Order from your seat and join the virtual queue.</p>
         
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(1, 1fr)', gap: '15px' }}>
@@ -84,7 +86,7 @@ export default function Concessions() {
             const qty = cartItem ? cartItem.quantity : 0;
             
             return (
-              <div key={item.id} className="glass-panel" style={{ padding: '15px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div key={item.id} className="glass-panel" role="listitem" style={{ padding: '15px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
                   <h4 style={{ fontSize: '1.1rem' }}>{item.name}</h4>
                   <div style={{ color: 'var(--stadium-green)', fontWeight: 'bold' }}>₹{item.price}</div>
@@ -93,6 +95,7 @@ export default function Concessions() {
                 {qty === 0 ? (
                   <button 
                     onClick={() => updateQuantity(item, 1)}
+                    aria-label={`Add ${item.name} to cart`}
                     style={{
                       padding: '8px 16px',
                       borderRadius: '6px',
@@ -109,6 +112,7 @@ export default function Concessions() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '15px', backgroundColor: '#f8fafc', padding: '5px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                     <button 
                       onClick={() => updateQuantity(item, -1)}
+                      aria-label={`Decrease ${item.name} quantity`}
                       style={{ padding: '6px', borderRadius: '4px', border: 'none', background: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}
                     >
                       <Minus size={16} color="#64748b" />
@@ -119,6 +123,7 @@ export default function Concessions() {
                     <button 
                       onClick={() => updateQuantity(item, 1)}
                       disabled={qty >= 5}
+                      aria-label={`Increase ${item.name} quantity`}
                       style={{ padding: '6px', borderRadius: '4px', border: 'none', background: qty >= 5 ? '#e2e8f0' : 'white', cursor: qty >= 5 ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}
                     >
                       <Plus size={16} color={qty >= 5 ? "#94a3b8" : "var(--stadium-green)"} />
@@ -129,9 +134,9 @@ export default function Concessions() {
             );
           })}
         </div>
-      </div>
+      </section>
 
-      <div className="glass-panel" style={{ flex: 1, padding: '30px', height: 'fit-content' }}>
+      <aside className="glass-panel" style={{ flex: 1, padding: '30px', height: 'fit-content' }} aria-label="Shopping Cart">
         <h2>Your Cart</h2>
         {cart.length > 0 ? (
           <div style={{ marginTop: '20px' }}>
@@ -153,7 +158,7 @@ export default function Concessions() {
         ) : (
           <p style={{ marginTop: '20px', color: 'var(--text-muted)' }}>Your cart is empty. Add items from the menu.</p>
         )}
-      </div>
-    </div>
+      </aside>
+    </main>
   );
 }

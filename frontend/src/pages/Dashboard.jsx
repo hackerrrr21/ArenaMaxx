@@ -113,10 +113,19 @@ export default function Dashboard() {
   }, []);
 
   return (
-    <div className="dashboard-page" style={{ position: 'relative', minHeight: '100vh', paddingTop: '10px' }}>
+    <main className="dashboard-page" style={{ position: 'relative', minHeight: '100vh', paddingTop: '10px' }} role="main">
       <h1 className="dash-title">Stadium Live Overview</h1>
       
-      <div className="stats-grid">
+      <div role="status" aria-live="polite" aria-label="Demo Notice"
+        style={{ backgroundColor: '#fff7ed', border: '1px solid #ffedd5', borderRadius: '12px', padding: '15px 20px', marginBottom: '30px', display: 'flex', alignItems: 'center', gap: '15px', color: '#9a3412' }}>
+        <AlertTriangle size={24} color="#f97316" />
+        <div style={{ fontSize: '0.95rem', lineHeight: '1.5' }}>
+          <strong>Demo Notice:</strong> Live sensor data is currently simulated for the <strong>PromptWars Virtual</strong> showcase. 
+          Real-world connectivity requires integration with stadium-specific IoT hardware and local network infrastructure.
+        </div>
+      </div>
+ 
+      <section aria-label="Live Statistics" aria-live="polite" className="stats-grid">
         <div className="glass-panel" style={{ padding: '20px', display: 'flex', alignItems: 'center', gap: '15px' }}>
           <Users size={32} color="var(--stadium-green)" />
           <div>
@@ -140,7 +149,7 @@ export default function Dashboard() {
             <div style={{ fontSize: '1.5rem', fontWeight: '700' }}>Gate C - Busy</div>
           </div>
         </div>
-      </div>
+      </section>
 
       <div className="content-flex">
         <div className="glass-panel" style={{ padding: '24px', flex: 2, display: 'flex', flexDirection: 'column' }}>
@@ -239,6 +248,7 @@ export default function Dashboard() {
         onClick={() => setHelpStatus('selecting')}
         className="help-fab"
         aria-label="Request Emergency Assistance"
+        aria-haspopup="dialog"
       >
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
            <LifeBuoy size={34} />
@@ -247,6 +257,6 @@ export default function Dashboard() {
       </button>
 
       <HelpModal status={helpStatus} setStatus={setHelpStatus} setResponder={setResponder} responder={responder} />
-    </div>
+    </main>
   );
 }
