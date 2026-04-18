@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Navigation, Camera, MapPin, Compass, Map, Navigation2 } from 'lucide-react';
+import { Navigation, Camera, MapPin, Compass, Map, Navigation2, AlertTriangle } from 'lucide-react';
+import { io } from 'socket.io-client';
 
 const poiData = {
     Sections: ['Premium Section G', 'Premium Section H', 'Standard Block D', 'Standard Block F', 'Gondola B', 'Press Box South'],
@@ -10,9 +11,9 @@ const poiData = {
 export default function Wayfinding() {
   const [locationGranted, setLocationGranted] = useState(false);
   const [category, setCategory] = useState('Sections');
-  const [destination, setDestination] = useState('');
-  const [activeRoute, setActiveRoute] = useState(null); // The route actually being walked
+  const [activeRoute, setActiveRoute] = useState(null); 
   const [distance, setDistance] = useState(0);
+  const [congestionAlert, setCongestionAlert] = useState(null);
 
   // Triggered when destination is confirmed via form
   const handleRouteSelect = (e) => {
@@ -24,7 +25,22 @@ export default function Wayfinding() {
   };
 
   useEffect(() => {
-    // Simulate walking closer to destination if we have a parsed target
+    // ── Live Traffic Integration: Socket.io ─────────────────────────────
+    const baseUrl = import.meta.env.PROD ? '' : 'http://localhost:8080';
+    const socket = io(baseUrl);
+
+    socket.on('stadium_alert', (alert) => {
+      if (alert.type === 'CONGESTION') {
+        setCongestionAlert(alert);
+        // Auto-clear alert after 10s
+        setTimeout(() => setCongestionAlert(null), 10000);
+      }
+    });
+
+    return () => socket.disconnect();
+  }, []);
+
+  useEffect(() => {
     if (distance > 0 && activeRoute) {
         const interval = setInterval(() => {
         setDistance(prev => {
@@ -32,7 +48,6 @@ export default function Wayfinding() {
             clearInterval(interval);
             return 0;
             }
-            // Faster walking down longer distances
             const marchRate = prev > 100 ? 5 : 2;
             return prev - marchRate;
         });
@@ -159,10 +174,38 @@ export default function Wayfinding() {
                     <div style={{ fontWeight: 'bold', fontSize: '1.2rem' }}>{activeRoute}</div>
                 </div>
                 
-                <div style={{ background: 'var(--stadium-green)', color: 'white', padding: '15px 25px', borderRadius: '15px', fontWeight: 'bold', fontSize: '1.5rem', display: 'flex', alignItems: 'center', boxShadow: '0 4px 15px rgba(34, 197, 94, 0.4)' }}>
+                <div style={{ background: congestionAlert ? '#f59e0b' : 'var(--stadium-green)', color: 'white', padding: '15px 25px', borderRadius: '15px', fontWeight: 'bold', fontSize: '1.5rem', display: 'flex', alignItems: 'center', boxShadow: '0 4px 15px rgba(0,0,0,0.3)', transition: 'background-color 0.5s ease' }}>
                     {distance}m
                 </div>
                 </div>
+
+                {/* Congestion Alert Overlay */}
+                {congestionAlert && (
+                  <div style={{ 
+                    position: 'absolute', 
+                    top: '110px', 
+                    left: '50%', 
+                    transform: 'translateX(-50%)', 
+                    width: '80%', 
+                    backgroundColor: 'rgba(245, 158, 11, 0.9)', 
+                    color: 'white', 
+                    padding: '12px 20px', 
+                    borderRadius: '12px', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '15px',
+                    boxShadow: '0 8px 20px rgba(0,0,0,0.4)',
+                    animation: 'slideDown 0.5s ease-out',
+                    backdropFilter: 'blur(5px)',
+                    zIndex: 10
+                  }}>
+                    <AlertTriangle size={24} />
+                    <div>
+                      <div style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>TRAFFIC DETECTED: {congestionAlert.zone}</div>
+                      <div style={{ fontSize: '0.8rem' }}>Suggesting inner-concourse detour to avoid bottleneck.</div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Dynamic AR Arrow Overlay */}
                 <div style={{
@@ -177,9 +220,13 @@ export default function Wayfinding() {
                 }}>
                 {distance > 0 ? (
                     <>
-                    <Navigation size={100} color="var(--stadium-green)" style={{ filter: 'drop-shadow(0 10px 20px rgba(34, 197, 94, 0.6))' }} />
-                    <div style={{ color: 'var(--stadium-green)', fontWeight: 'bold', marginTop: '30px', fontSize: '1.5rem', textShadow: '0 2px 10px rgba(0,0,0,0.8)' }}>
-                        {distance < 50 ? 'Turn Left Ahead' : 'Keep Straight'}
+                    <Navigation 
+                      size={100} 
+                      color={congestionAlert ? '#f59e0b' : 'var(--stadium-green)'} 
+                      style={{ filter: `drop-shadow(0 10px 20px ${congestionAlert ? 'rgba(245, 158, 11, 0.6)' : 'rgba(34, 197, 94, 0.6)'})`, transition: 'color 0.5s ease' }} 
+                    />
+                    <div style={{ color: congestionAlert ? '#f59e0b' : 'var(--stadium-green)', fontWeight: 'bold', marginTop: '30px', fontSize: '1.5rem', textShadow: '0 2px 10px rgba(0,0,0,0.8)', textAlign: 'center' }}>
+                        {congestionAlert ? 'Detouring via West Concourse' : (distance < 50 ? 'Turn Left Ahead' : 'Keep Straight')}
                     </div>
                     </>
                 ) : (

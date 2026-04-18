@@ -15,6 +15,7 @@ import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit, serverTimestamp } from 'firebase/firestore';
 import { getAnalytics, logEvent } from 'firebase/analytics';
 import { getPerformance } from 'firebase/performance';
+import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
 
 // ─── Firebase Configuration ────────────────────────────────────────────────
 // Configuration for Firebase project: arenamaxx
@@ -32,6 +33,7 @@ const firebaseConfig = {
 // ─── Initialize Firebase Services ─────────────────────────────────────────
 const firebaseApp = initializeApp(firebaseConfig);
 const db = getFirestore(firebaseApp);
+const auth = getAuth(firebaseApp);
 
 // Analytics — only in production to avoid polluting dev data
 let analytics = null;
@@ -107,4 +109,21 @@ export async function getRecentFirestoreEvents(collectionName = 'stadium_events'
   }
 }
 
-export { firebaseApp, db, analytics };
+/**
+ * Initialize an anonymous session with Firebase Identity Platform.
+ * This secures the client-side interactions and provides a unique uid.
+ * 
+ * @returns {Promise<string|null>} The Firebase user UID or null.
+ */
+export async function initializeAnonymousSession() {
+  try {
+    const userCredential = await signInAnonymously(auth);
+    console.log('[Firebase] Anonymous session started:', userCredential.user.uid);
+    return userCredential.user.uid;
+  } catch (e) {
+    console.error('[Firebase] Auth failed:', e.message);
+    return null;
+  }
+}
+
+export { firebaseApp, db, auth, analytics };

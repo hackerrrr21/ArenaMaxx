@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { ShoppingBag, Clock, Plus, Minus } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ShoppingBag, Clock, Plus, Minus, Info } from 'lucide-react';
 
 const MENU = [
   { id: 1, name: 'Stadium Vada Pav', price: 120 },
@@ -10,9 +10,18 @@ const MENU = [
 ];
 
 export default function Concessions() {
-  // Cart state holds objects: { id, item, quantity }
   const [cart, setCart] = useState([]);
   const [orderStatus, setOrderStatus] = useState(null);
+  const [liveLoad, setLiveLoad] = useState('Low');
+
+  useEffect(() => {
+    // Simulate fetching stadium order load
+    const loads = ['Low', 'Moderate', 'High', 'Steady'];
+    const interval = setInterval(() => {
+      setLiveLoad(loads[Math.floor(Math.random() * loads.length)]);
+    }, 15000);
+    return () => clearInterval(interval);
+  }, []);
   
   const updateQuantity = (item, delta) => {
     setCart(prevCart => {
@@ -78,6 +87,22 @@ export default function Concessions() {
     <main className="content-flex" style={{ gap: '30px' }} role="main">
       <section className="glass-panel" style={{ flex: 2, padding: '30px' }} aria-label="Food and Beverage Menu">
         <h1>Food &amp; Beverages</h1>
+        <div style={{ display: 'flex', gap: '15px', marginBottom: '25px', overflowX: 'auto', paddingBottom: '10px' }}>
+          <div style={{ padding: '12px 20px', backgroundColor: '#f0fdf4', borderRadius: '12px', border: '1px solid #bbf7d0', minWidth: '180px' }}>
+            <div style={{ fontSize: '0.8rem', color: '#166534', textTransform: 'uppercase', fontWeight: 'bold' }}>Queue Status</div>
+            <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#15803d', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Clock size={18} /> {liveLoad} Wait
+            </div>
+          </div>
+          <div style={{ padding: '12px 20px', backgroundColor: '#eff6ff', borderRadius: '12px', border: '1px solid #bfdbfe', minWidth: '180px' }}>
+            <div style={{ fontSize: '0.8rem', color: '#1e40af', textTransform: 'uppercase', fontWeight: 'bold' }}>Pickup Point</div>
+            <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#1d4ed8' }}>Level 2 South</div>
+          </div>
+          <div style={{ padding: '12px 20px', backgroundColor: '#fff7ed', borderRadius: '12px', border: '1px solid #fed7aa', minWidth: '180px' }}>
+            <div style={{ fontSize: '0.8rem', color: '#9a3412', textTransform: 'uppercase', fontWeight: 'bold' }}>Live Offers</div>
+            <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#c2410c' }}>Free 500ml Water</div>
+          </div>
+        </div>
         <p style={{ color: 'var(--text-muted)', marginBottom: '20px' }}>Skip the line! Order from your seat and join the virtual queue.</p>
         
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(1, 1fr)', gap: '15px' }}>

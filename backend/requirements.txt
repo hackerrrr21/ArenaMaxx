@@ -8,8 +8,11 @@ firebase-admin==6.2.0
 google-cloud-firestore
 google-cloud-logging
 google-cloud-storage
+google-cloud-secret-manager
 google-auth
 google-generativeai
+flask-talisman
+bleach
 pytest==7.4.2
 python-dotenv
 gunicorn

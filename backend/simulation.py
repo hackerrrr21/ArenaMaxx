@@ -67,6 +67,7 @@ class CrowdSimulator:
             "Block_B": {"name": "Block B Restroom", "capacity": 30, "occupied": 28},
             "Block_C": {"name": "Block C Restroom", "capacity": 15, "occupied": 2},
         }
+        self.zone_stats: dict[str, int] = {}
 
     def start(self) -> None:
         """
@@ -103,6 +104,31 @@ class CrowdSimulator:
             delta = random.choice([-1, 0, 0, 1])
             block["occupied"] = max(0, min(block["capacity"], block["occupied"] + delta))
 
+    def _calculate_congestion(self) -> None:
+        """Identify high-density zones and emit alerts if needed."""
+        zones = {
+            'VIP Zone': 0, 'Food Court': 0, 
+            'East Gate Area': 0, 'West Gate Area': 0
+        }
+        for p in self.bots:
+            if p['x'] < 400 and p['y'] < 300: zones['VIP Zone'] += 1
+            elif p['x'] >= 400 and p['y'] < 300: zones['Food Court'] += 1
+            elif p['x'] >= 400 and p['y'] >= 300: zones['East Gate Area'] += 1
+            else: zones['West Gate Area'] += 1
+        
+        self.zone_stats = zones
+        
+        # If any zone exceeds 35% of total bots, trigger a coordination alert
+        congestion_threshold = self.num_bots * 0.35
+        for zone, count in zones.items():
+            if count > congestion_threshold:
+                self.socketio.emit('stadium_alert', {
+                    'type': 'CONGESTION',
+                    'zone': zone,
+                    'message': f"High density detected in {zone}. Rerouting suggested.",
+                    'timestamp': time.time()
+                })
+
     def _run(self) -> None:
         """
         Main simulation loop. Runs at REFRESH_RATE_HZ until stopped.
@@ -114,9 +140,12 @@ class CrowdSimulator:
         while self.is_running:
             self._move_bots()
             self._fluctuate_washrooms()
+            self._calculate_congestion()
+            
             self.socketio.emit('crowd_flow', {
                 'total': self.num_bots,
                 'positions': self.bots,
+                'zone_stats': self.zone_stats
             })
             self.socketio.emit('washroom_status', self.washroom_blocks)
             time.sleep(1.0 / REFRESH_RATE_HZ)
