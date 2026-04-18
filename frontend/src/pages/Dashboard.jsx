@@ -272,7 +272,6 @@ export default function Dashboard() {
           </div>
         </div>
       </section>
-    </main>
 
       {/* Floating Action Button */}
       <button 
