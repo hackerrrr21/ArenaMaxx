@@ -14,6 +14,9 @@ google-cloud-aiplatform
 google-cloud-pubsub
 google-cloud-trace
 google-cloud-error-reporting
+google-generativeai
+flask-talisman
+bleach
 pydantic==2.5.2
 python-dotenv
 gunicorn
