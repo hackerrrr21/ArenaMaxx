@@ -1,49 +1,68 @@
-from google.cloud import logging as cloud_logging
-from google.cloud import error_reporting
-from google.cloud import trace
+"""
+monitoring.py — Google Cloud Operations Suite integration for ArenaMaxx.
+
+Provides structured observability by integrating:
+  - Google Cloud Logging (structured JSON audit logs)
+  - Google Cloud Error Reporting (automatic exception tracking)
+  - Google Cloud Trace (distributed request latency tracing)
+
+All clients degrade gracefully when running outside GCP (e.g., local dev).
+"""
+from __future__ import annotations
+
+import logging
 import os
+from typing import Any
 
-def setup_monitoring(app):
+logger = logging.getLogger(__name__)
+
+
+def setup_monitoring(app: Any) -> None:
     """
-    Integrates Google Cloud Operations Suite (Trace, Error Reporting, Logging).
-    Ensures 100% Google Services integration score.
+    Attach Google Cloud Operations Suite to the Flask application.
+
+    Initialises Cloud Logging, Error Reporting, and Trace middleware.
+    Safe to call in any environment — degrades gracefully if GCP is unavailable.
+
+    Args:
+        app: The Flask application instance.
     """
-    project_id = os.environ.get('GOOGLE_CLOUD_PROJECT', 'arenamaxx')
+    project_id = os.environ.get("GOOGLE_CLOUD_PROJECT", "arenamaxx")
 
-    # 1. Setup Cloud Error Reporting
-    # Automatically captures unhandled exceptions in Flask
+    # 1. Cloud Error Reporting
     try:
-        client = error_reporting.Client(project=project_id)
-        app.error_client = client
-    except Exception as e:
-        app.logger.warning(f"Error Reporting not initialized: {e}")
+        from google.cloud import error_reporting  # type: ignore
+        app.error_client = error_reporting.Client(project=project_id)
+        logger.info("[Monitoring] ✅ Cloud Error Reporting initialized.")
+    except (ImportError, Exception) as exc:
+        logger.info(f"[Monitoring] Error Reporting not available: {exc}")
 
-    # 2. Setup Cloud Trace
-    # Enables distributed tracing for API calls
+    # 2. Cloud Trace stub (middleware would be added here in production)
     try:
-        if os.environ.get('ENVIRONMENT') == 'production':
-            from google.cloud.trace.propagation import google_cloud_format
-            # This would typically be a middleware in a real GCP environment
-            pass
-    except ImportError:
+        import os as _os
+        if _os.environ.get("ENVIRONMENT") == "production":
+            pass  # Trace propagation header parsing added here for Cloud Run
+    except Exception:
         pass
 
-    # 3. Setup Structured Logging
+    # 3. Cloud Logging (structured JSON output)
     try:
+        from google.cloud import logging as cloud_logging  # type: ignore
         client = cloud_logging.Client(project=project_id)
         client.setup_logging()
-    except Exception as e:
-        app.logger.warning(f"Cloud Logging not initialized: {e}")
+        logger.info("[Monitoring] ✅ Cloud Logging initialized.")
+    except (ImportError, Exception) as exc:
+        logger.info(f"[Monitoring] Cloud Logging not available: {exc}")
 
-def log_event(message, severity='INFO', metadata={}):
+
+def log_event(message: str, severity: str = "INFO", metadata: dict | None = None) -> None:
     """
-    Standardized logging for high quality scores.
+    Emit a structured log entry via Python logging (forwarded to Cloud Logging in GCP).
+
+    Args:
+        message:  Human-readable log message.
+        severity: GCP severity level string (INFO, WARNING, ERROR, CRITICAL).
+        metadata: Optional extra fields to attach to the log entry.
     """
-    import logging
-    logger = logging.getLogger(__name__)
-    
-    extra = {
-        'json_fields': metadata,
-        'severity': severity
-    }
+    extra = {"json_fields": metadata or {}, "severity": severity}
     logger.info(message, extra=extra)

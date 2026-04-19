@@ -1,57 +1,84 @@
-from google.cloud import pubsub_v1
+"""
+order_bus.py — Async Logistics Engine using Google Cloud Pub/Sub pattern.
+
+Implements event-driven order fulfillment for ArenaMaxx concessions.
+Uses Cloud Pub/Sub when available in GCP, with a graceful threading fallback
+for local development environments.
+
+Google Cloud Services:
+  - Google Cloud Pub/Sub (topic: order-fulfillment)
+"""
+from __future__ import annotations
+
 import os
 import json
 import threading
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 class OrderBus:
     """
-    Simulates Google Cloud Pub/Sub for high-scale stadium logistics.
-    Used for order fulfillment and real-time inventory updates.
+    Asynchronous order logistics bus backed by Google Cloud Pub/Sub.
+
+    In production (Cloud Run), publishes to a real Pub/Sub topic.
+    In local development, simulates async processing via background threads.
     """
-    def __init__(self):
-        self.project_id = os.environ.get('GOOGLE_CLOUD_PROJECT', 'arenamaxx')
-        self.topic_id = 'order-fulfillment'
-        self.publisher = None
-        self.subscriber = None
+
+    def __init__(self) -> None:
+        self.project_id: str = os.environ.get("GOOGLE_CLOUD_PROJECT", "arenamaxx")
+        self.topic_id: str = "order-fulfillment"
+        self._publisher = None
+        self._topic_path: str = ""
         self._init_client()
 
-    def _init_client(self):
+    def _init_client(self) -> None:
+        """Attempt to initialize the real Cloud Pub/Sub publisher client."""
         try:
-            # Real GCP Init
-            self.publisher = pubsub_v1.PublisherClient()
-            self.topic_path = self.publisher.topic_path(self.project_id, self.topic_id)
-        except Exception:
-            # Mock for local dev
-            self.publisher = None
-            print("[PubSub] Running in Mock Mode for Local Development")
+            from google.cloud import pubsub_v1  # type: ignore
+            self._publisher = pubsub_v1.PublisherClient()
+            self._topic_path = self._publisher.topic_path(self.project_id, self.topic_id)
+            logger.info("[OrderBus] ✅ Cloud Pub/Sub publisher initialized.")
+        except (ImportError, Exception) as exc:
+            self._publisher = None
+            logger.info(f"[OrderBus] Running in mock mode (Pub/Sub unavailable): {exc}")
 
-    def publish_order(self, order_data):
+    def publish_order(self, order_data: dict) -> bool:
         """
-        Publishes a new order to the Concession topic.
+        Publish a new order to the fulfillment topic.
+
+        Args:
+            order_data: Dictionary containing order details (id, items, queue_number).
+
+        Returns:
+            True if the order was successfully enqueued, False otherwise.
         """
-        if self.publisher:
+        if self._publisher:
             try:
-                data = json.dumps(order_data).encode("utf-16")
-                self.publisher.publish(self.topic_path, data)
+                payload = json.dumps(order_data).encode("utf-8")
+                future = self._publisher.publish(self._topic_path, payload)
+                future.result(timeout=5)  # confirm publish
+                logger.info(f"[OrderBus] Order #{order_data.get('id')} published to Pub/Sub.")
                 return True
-            except Exception as e:
-                print(f"[PubSub] Publish failed: {e}")
+            except Exception as exc:
+                logger.error(f"[OrderBus] Pub/Sub publish failed: {exc}")
                 return False
-        else:
-            # Simulated Async Processing
-            threading.Thread(target=self._mock_consumer, args=(order_data,)).start()
-            return True
 
-    def _mock_consumer(self, order_data):
-        """
-        Simulates the background Cloud Function that processes orders.
-        """
+        # Local mock: simulate async processing in a background thread
+        threading.Thread(
+            target=self._mock_consumer,
+            args=(order_data,),
+            daemon=True,
+        ).start()
+        return True
+
+    def _mock_consumer(self, order_data: dict) -> None:
+        """Simulate Cloud Function consumer processing the order."""
         import time
-        from .monitoring import log_event
-        
-        log_event(f"Processing Order #{order_data.get('id')}", severity='INFO', metadata=order_data)
-        time.sleep(2) # Simulate processing delay
-        log_event(f"Order #{order_data.get('id')} Fulfilled", metadata={'status': 'ready'})
+        time.sleep(2)
+        logger.info(f"[OrderBus-Mock] Order #{order_data.get('id')} fulfilled.")
 
-# Singleton instance
+
+# Module-level singleton
 order_bus = OrderBus()

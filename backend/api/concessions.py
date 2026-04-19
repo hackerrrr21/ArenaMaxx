@@ -26,7 +26,8 @@ def place_order():
     last_order = Order.query.order_by(Order.queue_number.desc()).first()
     q_num = (last_order.queue_number + 1) if last_order else 100
     
-    new_order = Order(items=data.items, queue_number=q_num, status='Preparing')
+    # Use user_id=1 as guest default (satisfies NOT NULL FK constraint)
+    new_order = Order(user_id=1, items=data.items, queue_number=q_num, status='Preparing')
     db.session.add(new_order)
     db.session.commit()
 
